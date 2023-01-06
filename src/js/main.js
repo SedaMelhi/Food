@@ -1,3 +1,5 @@
+const { data } = require("browserslist");
+
 document.addEventListener('DOMContentLoaded', () => {
     /** -------------------------Tabs------------------------------ */
     const tabContents = document.querySelectorAll('.tabcontent'),
@@ -87,8 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if(e.code === 'Escape' && !modal.classList.contains('hide')){
             closeModal(modal)
         }
-    })
-    
+    })   
+
     function closeModal(modal) {
         modal.classList.toggle('hide')
         document.body.style.overflow = ''
@@ -122,21 +124,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 4000);
     }
     /** -------------------------Элементы меню------------------------------ */
-    class MenuItem{
-        constructor(name, description, price, imgUrl, altImg, parentSelector){
-            this.name = name
+    const getData = async (url) => {
+        const res = await fetch(url)
+        if(!res.ok){
+            throw new Error(`Could not fetch ${url}, status ${res.status}`)
+        }
+        return await res.json()
+    }
+    getData('http://localhost:3000/menu')
+    .then(data => {
+        data.forEach(({img, altimg, title, descr, price}) => {
+            new menuItem(img, altimg, title, descr, price, '.menu .container').render()
+        })
+    })
+    class menuItem{
+        constructor(img, alt, title, description, price, parent){
+            this.img = img
+            this.alt = alt
+            this.title = title
             this.description = description
-            this.price = price
-            this.url = imgUrl
-            this.alt = altImg
-            this.parent = document.querySelector(parentSelector)
+            this.price = price 
+            this.parent = document.querySelector(parent)
         }
         render(){
             const element = document.createElement('div')
             element.innerHTML = `
                 <div class="menu__item">
-                    <img src="${this.url}" alt="${this.alt}">
-                    <h3 class="menu__item-subtitle">Меню "${this.name}"</h3>
+                    <img src="${this.img}" alt="${this.alt}">
+                    <h3 class="menu__item-subtitle">${this.title}</h3>
                     <div class="menu__item-descr">${this.description}</div>
                     <div class="menu__item-divider"></div>
                     <div class="menu__item-price">
@@ -148,32 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.parent.append(element)
         }
     }
-    new MenuItem(
-        'Фитнес', 
-        'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!', 
-        229, 
-        'img/tabs/vegy.jpg', 
-        'vegy',
-        '.menu__field .container'
-    ).render()
-    new MenuItem(
-        'Премиум', 
-        'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!', 
-        550, 
-        'img/tabs/elite.jpg', 
-        'elite',
-        '.menu__field .container'
-    ).render()
-    new MenuItem(
-        'Постное', 
-        'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.', 
-        430, 
-        'img/tabs/post.jpg', 
-        'post',
-        '.menu__field .container'
-    ).render()
-    
-    
+
    /** ------------------------Форма------------------------------ */
     const forms = document.querySelectorAll('form');
     const message = {
@@ -181,7 +171,17 @@ document.addEventListener('DOMContentLoaded', () => {
         success: 'Спасибо! Скоро мы с вами свяжемся',
         failure: 'Что-то пошло не так...'
     }
-    function postData(form){
+    const postData = async (url, data) => {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-type': 'application/json'
+            },
+            body: data,
+        })
+        return await res.json()
+    }
+    function bindPostData(form){
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             const statusMessage = document.createElement('img');
@@ -197,16 +197,8 @@ document.addEventListener('DOMContentLoaded', () => {
             formData.forEach((value, key) => {
                 object[key] = value;
             })
-            fetch('server.php', {
-                method: 'POST',
-                headers: {
-                    'Content-type': 'application/json'
-                },
-                body: JSON.stringify(object),
-            })
-            .then(data => {
-                return data.text()
-            })
+            
+            postData('http://localhost:3000/requests', JSON.stringify(object))
             .then(data => {
                     console.log(data);
                     showThanksModal(message.success);
@@ -221,31 +213,8 @@ document.addEventListener('DOMContentLoaded', () => {
             .finally(() => {
                 form.reset();
             })
-            // const request = new XMLHttpRequest()
-            // request.open('POST', 'server.php');
-            // const formData = new FormData(form)
-            // request.setRequestHeader('Content-type', 'application/json')
-            // const object = {}
-            // formData.forEach((value, key) => {
-            //     object[key] = value;
-            // })
-            // const json = JSON.stringify(object)
-            // request.send(json)
-            // request.addEventListener('load', () => {
-            //     if(request.status === 200){
-            //         console.log(request.response)
-                    
-            //         showThanksModal(message.success);
-            //         setTimeout(() => {
-            //             form.reset()
-            //             statusMessage.remove();
-            //         }, 5000)
-            //     }else{
-            //         showThanksModal(message.failure);
-            //     }
-            // })
         })
     }
-    forms.forEach(item => postData(item))
+    forms.forEach(item => bindPostData(item))
 })
 

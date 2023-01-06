@@ -2161,6 +2161,45 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   forms.forEach(item => bindPostData(item));
+  /** ------------------------Карусель------------------------------ */
+
+  const slides = document.querySelectorAll('.offer__slide'),
+        slidesWrap = document.querySelector('.offer__slider-inner');
+  sliderPrev = document.querySelector('.offer__slider-prev'), sliderNext = document.querySelector('.offer__slider-next');
+  document.getElementById('total').innerText = slides.length < 10 ? `0${slides.length}` : slides.length;
+  let startX = 0;
+  let activeNum = 0;
+  sliderPrev.addEventListener('click', () => {
+    updateActiveSlide('left');
+  });
+  sliderNext.addEventListener('click', () => {
+    updateActiveSlide('right');
+  });
+
+  function updateActiveNum(i) {
+    const activeNumTag = document.getElementById('current');
+    activeNumTag.innerText = i + 1 < 10 ? `0${i + 1}` : i + 1;
+  }
+
+  const updateActiveSlide = arrow => {
+    const width = slides[0].scrollWidth;
+
+    if (activeNum < slides.length - 1 && arrow == 'right') {
+      startX += width;
+      slidesWrap.style.transform = `translateX(-${startX}px)`;
+      activeNum++;
+      updateActiveNum(activeNum);
+    }
+
+    if (activeNum != 0 && arrow == 'left') {
+      startX -= width;
+      slidesWrap.style.transform = `translateX(-${startX}px)`;
+      activeNum--;
+      updateActiveNum(activeNum);
+    }
+  };
+
+  updateActiveNum(activeNum);
 });
 
 /***/ }),

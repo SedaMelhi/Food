@@ -302,7 +302,7 @@ a {
 }
 .offer__slider-inner {
   display: flex;
-  transition: 0.3s;
+  transition: 0.8s;
 }
 .offer__slider-prev {
   margin-right: 10px;

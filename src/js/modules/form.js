@@ -1,3 +1,5 @@
+import {showThanksModal} from "./modal";
+import {postData} from "../services/services";
 function form(){
     const forms = document.querySelectorAll('form');
     const message = {
@@ -5,16 +7,7 @@ function form(){
         success: 'Спасибо! Скоро мы с вами свяжемся',
         failure: 'Что-то пошло не так...'
     }
-    const postData = async (url, data) => {
-        const res = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-type': 'application/json'
-            },
-            body: data,
-        })
-        return await res.json()
-    }
+    
     function bindPostData(form){
         form.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -35,14 +28,14 @@ function form(){
             postData('http://localhost:3000/requests', JSON.stringify(object))
             .then(data => {
                     console.log(data);
-                    showThanksModal(message.success);
+                    showThanksModal(message.success, '.modal');
                         setTimeout(() => {
                             statusMessage.remove();
                         }, 5000)
                 }   
             )
             .catch(() => 
-                showThanksModal(message.failure)
+                showThanksModal(message.failure, '.modal')
             )
             .finally(() => {
                 form.reset();
@@ -51,4 +44,4 @@ function form(){
     }
     forms.forEach(item => bindPostData(item))
 }
-module.exports = form;
+export default form;
